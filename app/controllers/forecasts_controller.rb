@@ -6,12 +6,11 @@ class ForecastsController < ApplicationController
   end
 
   def create
-    weather_data = Api::OpenWeatherService.weather(lat: params[:location][:lat], lon: params[:location][:lon])
+    current = Api::OpenWeatherService.weather(lat: params[:location][:lat], lon: params[:location][:lon])
+    forecasts = Api::OpenWeatherService.daily(lat: params[:location][:lat], lon: params[:location][:lon])
 
-    render json: weather_data.to_json
-    # respond_to do |format|
-    #   format.html
-    #   format.json { render json: @user }
-    # end
+    render json: { current:, forecasts: }.to_json
+  rescue => err
+    render json: { error: err }, status: 400
   end
 end

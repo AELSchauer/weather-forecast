@@ -1,7 +1,11 @@
 .container
-  h1.mb-3.text-2xl.font-extrabold Check the Weather!
+  h1.mb-3.text-3xl.font-extrabold Check the Weather!
   #autocomplete.autocomplete-container
-  #current-weather
+  #error.hidden.p-4.my-4.text-sm.text-red-800.rounded-lg.bg-red-50.dark:bg-gray-800.dark:text-red-400[role="alert"]
+    | We encountered an error. Please try again later.
+  #current_weather
+  #forecast
+
 
 css:
   #autocomplete {
@@ -14,81 +18,105 @@ css:
   }
 
 javascript:
-  const WeatherDay = ({
-    elemId,
-    elemIdx,
-    coord,
-    location: {city, state, country},
-    weather: [weather],
-    main,
-    wind
-  }) => {
-    var cityStateCountry
-    if(typeof state === 'undefined') {
-      cityStateCountry = `${city}, ${country}`
-    } else {
-      cityStateCountry = `${city}, ${state}, ${country}`
-    }
-    var directions = [
-      ["N", 0],
-      ["NE", 45],
-      ["E", 90],
-      ["SE", 135],
-      ["S", 180],
-      ["SW", 225],
-      ["W", 270],
-      ["NW", 315],
-      ["N", 360]
-    ]
 
-    var direction = directions.find(([dir, degBot]) =>
-      (degBot - 22.5) <= wind.deg && wind.deg <= (degBot + 22.5))[0]
+  // Render the data for each weather object into HTML
+  // @param {heading_type} : 'location' or 'datetime'
+  // @param {coordinates.lat} : latitude
+  // @param {coordinates.lon} : longitude
+  // @param {data.date} : human readable date for heading
+  // @param {data.elemId} : element ID for debugging and testing
+  // @param {data.elemIdx} : element index for debugging and testing
+  // @param {data.location.city} : location city
+  // @param {data.location.country} : location country
+  // @param {data.location.state} : location state
+  // @param {data.main.temp} : actual temperature
+  // @param {data.main.feels_like} : 'feels like' temperature
+  // @param {data.main.temp_max} : max temperature
+  // @param {data.main.temp_min} : min temperature
+  // @param {data.weather[0]} : primary weather object with description and icon code
+  // @param {data.wind} : wind data including direction, degree, and speed
+  // @param {data.time} : human readable time for heading
+  const WeatherReport = (
+    heading_type,
+    {lat, lon},
+    {
+      date,
+      elemId,
+      elemIdx,
+      location: {city, country, state},
+      main: {
+        temp,
+        feels_like,
+        temp_max,
+        temp_min,
+        humidity
+      },
+      weather: [weather],
+      wind,
+      time
+    }
+  ) => {
+
+
+    var heading
+    if(heading_type == "location") {
+      var cityStateCountry
+      if(typeof state === 'undefined') {
+        cityStateCountry = `${city}, ${country}`
+      } else {
+        cityStateCountry = `${city}, ${state}, ${country}`
+      }
+
+      heading = `<div id="location_${elemIdx}">
+        <h2 id="city_state_country_${elemIdx}" class="font-bold text-xl mb-1">${cityStateCountry}</h2>
+        <div id="lat_lon_${elemIdx}" class="text-sm">${coordinates.lat},${coordinates.lon}</div>
+      </div>`
+    } else {
+      heading = `<h2 id="datetime_${elemIdx}" class="font-bold text-xl mb-1">${date} ${time}</h2>`
+    }
 
     return `
-      <div id="${elemId}" class="hidden my-6">
-        <div class="location">
-          <div id="city_state_country_${elemIdx}" class="city-state-country">${cityStateCountry}</div>
-          <div id="lat_lon_${elemIdx}" class="lat-lon text-sm">${coord.lat},${coord.lon}</div>
-        </div>
-        <div id="weather_description_${elemIdx}" class="weather-description flex items-center">
+      <div id="${elemId}" class="mt-6 mb-12">
+        ${heading}
+        <div id="weather_description_${elemIdx}" class="flex items-center">
           <img src="https://openweathermap.org/img/wn/${weather.icon}@2x.png" alt=${weather.description}>
           <div>${weather.main}</div>
         </div>
-        <div class="temperature my-4">
+        <div class="my-4">
           <h2 class="font-bold text-lg mb-3">Temperature</h2>
           <table>
-            <tr id="temp_actual_${elemIdx}" class="actual">
+            <tr id="temp_actual_${elemId}">
               <th class="p-1">Actual:</td>
-              <td class="p-1">${main.temp}°F</td>
+              <td class="p-1">${temp}°F</td>
             </tr>
-            <tr id="temp_feels_like_${elemIdx}" class="feels-like">
+            <tr id="temp_feels_like_${elemId}">
               <th class="p-1">Feels Like:</td>
-              <td class="p-1">${main.feels_like}°F</td>
+              <td class="p-1">${feels_like}°F</td>
             </tr>
-            <tr id="temp_minimum_${elemIdx}" class="minimum">
+            <tr id="temp_minimum_${elemId}">
               <th class="p-1">Max:</td>
-              <td class="p-1">${main.temp_min}°F</td>
+              <td class="p-1">${temp_min}°F</td>
             </tr>
-            <tr id="temp_maximum_${elemIdx}" class="maximum">
+            <tr id="temp_maximum_${elemId}">
               <th class="p-1">Min:</td>
-              <td class="p-1">${main.temp_max}°F</td>
+              <td class="p-1">${temp_max}°F</td>
             </tr>
           </table>
         </div>
         <div class="conditions my-4">
           <h2 class="font-bold text-lg mb-3">Conditions</h2>
           <table>
-            <tr id="wind_speed${elemIdx}" class="speed">
+            <tr id="wind_speed${elemId}">
               <th class="p-1">Wind Speed:</td>
               <td class="p-1">${wind.speed}mph</td>
             </tr>
-            <tr id="wind_direction_${elemIdx}" class="direction">
+            <tr id="wind_direction_${elemId}">
               <th class="p-1">Wind Direction:</td>
-              <td class="p-1" data-qa-degree=${wind.deg}>${main.feels_like}</td>
+              <td class="p-1" data-qa-degree=${wind.deg}>${wind.direction}</td>
             </tr>
-            <tr id="humidity_${elemIdx}" class="humidity">
+            <tr id="humidity_${elemId}">
               <th class="p-1">Humidity:</td>
-              <td class="p-1">${main.humidity}°F</td>
+              <td class="p-1">${humidity}°F</td>
             </tr>
           </table>
         </div>
@@ -100,22 +128,41 @@ javascript:
                           "#{ENV['GEOAPIFY_ADDRESS_AUTOCOMPLETE_API_KEY']}", 
                           { /* Geocoder options */ });
 
-  autocompleteInput.on('select', ({properties: {city, country, state, place_id, lat, lon}}) => {
-    var data = {location: {city, country, state, place_id, lat, lon}}
+  // Return the geocoding data from the autocomplete search
+  // Make a POST AJAX request with the relevant extracted data
+  // On a success, render the HTML for the returned weather objects
+  // On a failure, render a generic error message
+  autocompleteInput.on('select', ({properties: {city, country, lat, lon, place_id, state}}) => {
+    var data = {location: {city, country, lat, lon, place_id, state}}
     $.ajax({
       type: "POST",
       url: "#{forecasts_path}",
       data,
       dataType: "text",
-      success: function(resultData){
+      success: function(resultData) {
+        var {current, forecasts} = JSON.parse(resultData)
+        var coordinates = current.coord
         // Render the server data into a reusable component
-        weatherDay = WeatherDay({elemId: "current-weather", elemIdx: 0, ...data, ...JSON.parse(resultData)})
+        current = WeatherReport("location", coordinates, {elemId: "current_weather", elemIdx: 0, ...data, ...current})
         // Replace the current weather element with the new HTML
-        $("#current-weather").replaceWith(weatherDay);
-        // Show the element if its hidden
-        $("#current-weather").removeClass("hidden");
+        $("#current_weather").replaceWith(current);
+        // Append the forecast element with HTML for each forecast object
+        $("#forecast").replaceWith(`<div id="forecast"></div>`)
+        forecasts.list.forEach((forecast, i) => {
+          idx = i + 1
+          forecast = WeatherReport("datetime", coordinates, {elemId: `forecast_weather_${idx}`, elemIdx: idx, ...data, ...forecast})
+          $("#forecast").append(forecast)
+        })
         // Clear the search text from the Autocomplete component
         autocompleteInput.setValue("");
+        // Hide the error message
+        $("#error").addClass("hidden");
+      },
+      failure: function(error) {
+        // Display the error message
+        $("#error").removeClass("hidden");
+        // Clear displayed weather data from previous requests
+        $("#current_weather").replaceWith(`<div id="current_weather"></div>`);
       }
     });
   });

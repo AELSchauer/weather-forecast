@@ -1,41 +1,18 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Setup
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
-
-# Setup
-
-## ENV
+### ENV
 
 Create an `.env` file at the root of the project and add the following environment variables to the file:
 
 * `OPEN_WEATHER_API_KEY` -- API key for https://openweathermap.org/api
 
-## Database
+### Database
 
 This project uses PostgreSQL v16
 
-## Homebrew and Oh My Zsh
+### Homebrew and Oh My Zsh
 
 Install PostgreSQL:
 ```
@@ -50,7 +27,7 @@ brew services start posgresql@16
 bin/rails db:create
 ```
 
-## Starting the Local Server
+### Starting the Local Server
 
 This project uses tailwind as its CSS processor, which must be compiled before changes can be seen in the application. TW has a just-in-time compiler for development that must run alongside the rails server.
 
@@ -58,9 +35,14 @@ When starting the local server, make sure to run:
 
 `bin/dev`
 
-# Assignment Parameters
+## Applicant Follow-Up Work Ideas
 
-## Coding Assignment Requirements:
+* Determine whether it's necessary (and if so how) to create better security around API tokens
+* Explore using Hotwire or React to render more complex and readable UI code
+
+## Assignment Parameters
+
+### Coding Assignment Requirements:
 
 · Must be done in Ruby on Rails
 
@@ -72,7 +54,7 @@ When starting the local server, make sure to run:
 
 · Cache the forecast details for 30 minutes for all subsequent requests by zip codes. Display indicator if result is pulled from cache.
 
-## Assumptions:
+### Assumptions:
 
 · This project is open to interpretation
 
@@ -80,13 +62,13 @@ When starting the local server, make sure to run:
 
 · If you get stuck, complete as much as you can
 
-## Submission:
+### Submission:
 
 · Use a public source code repository (GitHub, etc) to store your code
 
 · Send us the link to your completed code
 
-## Reminders:
+### Reminders:
 
 Please remember – it’s not just whether or not the code works that they will be focused on seeing – it’s all the rest of what goes into good Senior Software Engineering daily practices for Enterprise Production Level Code – such as specifically:
 

@@ -6,12 +6,13 @@ class Api::OpenWeatherService
 
   class << self
     # This will make a GET request to the Open Weather API
-    #   to recieve the 7 day forecast for a given location
+    #   to recieve the forecast for a given location
+    # Format each weather data object in the list
     # The response will return in English and imperial units.
     # @param {lat} : location latitude
     # @param {lon} : location longitude
     def daily(lat:, lon:)
-      get("/data/2.5/forecast", {
+      response = get("/data/2.5/forecast", {
         query: {
           lat:,
           lon:,
@@ -20,15 +21,20 @@ class Api::OpenWeatherService
           appid: API_KEY
         }
       })
+      response["list"].map! do |data|
+        format(data, response["city"]["timezone"])
+      end
+      response
     end
 
     # This will make a GET request to the Open Weather API
     #   to recieve the current weather for a given location
+    # Format the weather data object
     # The response will return in English and imperial units.
     # @param {lat} : location latitude
     # @param {long} : location longitude
     def weather(lat:, lon:)
-      get("/data/2.5/weather", {
+      response = get("/data/2.5/weather", {
         query: {
           lat:,
           lon:,
@@ -37,6 +43,42 @@ class Api::OpenWeatherService
           appid: API_KEY
         }
       })
+      format(response, response["timezone"])
+    end
+
+    # This takes the wind degree and returns the closest cardinal direction
+    def direction(deg)
+      directions = [
+        [ "N", 0 ],
+        [ "NE", 45 ],
+        [ "E", 90 ],
+        [ "SE", 135 ],
+        [ "S", 180 ],
+        [ "SW", 225 ],
+        [ "W", 270 ],
+        [ "NW", 315 ],
+        [ "N", 360 ]
+      ]
+
+      direction = directions.find do |dir, degBot|
+        (degBot - 22.5) <= deg && deg <= (degBot + 22.5)
+      end
+
+      direction[0]
+    end
+
+    # Format the data for easier display on the FE
+    # Display the date and time in the location's timezone
+    # Show the cardinal direction the wind is blowing
+    # @param {data} : weather data object
+    # @param {timezone_offset_in_sec} : timezone offset from utc in seconds
+    def format(data, timezone_offset_in_sec)
+      tz_offset = ActiveSupport::TimeZone[timezone_offset_in_sec].formatted_offset
+      date_time = Time.at(data["dt"]).utc.to_datetime.new_offset(tz_offset)
+      data["date"] = date_time.strftime("%A, %B %d, %Y")
+      data["time"] = date_time.strftime("%-l:%M %p").strip
+      data["wind"]["direction"] = direction(data["wind"]["deg"])
+      data
     end
 
     # This overrides the base HTTParty.get method to add error handling.
