@@ -23,13 +23,15 @@ Things you may want to cover:
 
 * ...
 
-# ENV Setup
+# Setup
+
+## ENV
 
 Create an `.env` file at the root of the project and add the following environment variables to the file:
 
 * `OPEN_WEATHER_API_KEY` -- API key for https://openweathermap.org/api
 
-# Database
+## Database
 
 This project uses PostgreSQL v16
 
@@ -47,6 +49,14 @@ Start the service and create the database:
 brew services start posgresql@16
 bin/rails db:create
 ```
+
+## Starting the Local Server
+
+This project uses tailwind as its CSS processor, which must be compiled before changes can be seen in the application. TW has a just-in-time compiler for development that must run alongside the rails server.
+
+When starting the local server, make sure to run:
+
+`bin/dev`
 
 # Assignment Parameters
 
