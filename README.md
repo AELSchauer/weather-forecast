@@ -23,6 +23,25 @@ Things you may want to cover:
 
 * ...
 
+# Database
+
+This project uses PostgreSQL v16
+
+## Homebrew and Oh My Zsh
+
+Install PostgreSQL:
+```
+brew install postgresql@16
+echo 'export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Start the service and create the database:
+```
+brew services start posgresql@16
+bin/rails db:create
+```
+
 # Assignment Parameters
 
 ## Coding Assignment Requirements:
