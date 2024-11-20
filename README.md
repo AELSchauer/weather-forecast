@@ -23,6 +23,12 @@ Things you may want to cover:
 
 * ...
 
+# ENV Setup
+
+Create an `.env` file at the root of the project and add the following environment variables to the file:
+
+* `OPEN_WEATHER_API_KEY` -- API key for https://openweathermap.org/api
+
 # Database
 
 This project uses PostgreSQL v16
