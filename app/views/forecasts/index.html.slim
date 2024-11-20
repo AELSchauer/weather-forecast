@@ -1,20 +1,121 @@
 .container
-  h1.mb-3 = @greeting
+  h1.mb-3.text-2xl.font-extrabold Check the Weather!
   #autocomplete.autocomplete-container
-  #map
+  #current-weather
 
-css: 
+css:
   #autocomplete {
     position: relative;
     width: 100%;
   }
 
+  th {
+    text-align: left;
+  }
+
 javascript:
+  const WeatherDay = ({
+    elemId,
+    elemIdx,
+    coord,
+    location: {city, state, country},
+    weather: [weather],
+    main,
+    wind
+  }) => {
+    var cityStateCountry
+    if(typeof state === 'undefined') {
+      cityStateCountry = `${city}, ${country}`
+    } else {
+      cityStateCountry = `${city}, ${state}, ${country}`
+    }
+    var directions = [
+      ["N", 0],
+      ["NE", 45],
+      ["E", 90],
+      ["SE", 135],
+      ["S", 180],
+      ["SW", 225],
+      ["W", 270],
+      ["NW", 315],
+      ["N", 360]
+    ]
+
+    var direction = directions.find(([dir, degBot]) =>
+      (degBot - 22.5) <= wind.deg && wind.deg <= (degBot + 22.5))[0]
+
+    return `
+      <div id="${elemId}" class="hidden my-6">
+        <div class="location">
+          <div id="city_state_country_${elemIdx}" class="city-state-country">${cityStateCountry}</div>
+          <div id="lat_lon_${elemIdx}" class="lat-lon text-sm">${coord.lat},${coord.lon}</div>
+        </div>
+        <div id="weather_description_${elemIdx}" class="weather-description flex items-center">
+          <img src="https://openweathermap.org/img/wn/${weather.icon}@2x.png" alt=${weather.description}>
+          <div>${weather.main}</div>
+        </div>
+        <div class="temperature my-4">
+          <h2 class="font-bold text-lg mb-3">Temperature</h2>
+          <table>
+            <tr id="temp_actual_${elemIdx}" class="actual">
+              <th class="p-1">Actual:</td>
+              <td class="p-1">${main.temp}°F</td>
+            </tr>
+            <tr id="temp_feels_like_${elemIdx}" class="feels-like">
+              <th class="p-1">Feels Like:</td>
+              <td class="p-1">${main.feels_like}°F</td>
+            </tr>
+            <tr id="temp_minimum_${elemIdx}" class="minimum">
+              <th class="p-1">Max:</td>
+              <td class="p-1">${main.temp_min}°F</td>
+            </tr>
+            <tr id="temp_maximum_${elemIdx}" class="maximum">
+              <th class="p-1">Min:</td>
+              <td class="p-1">${main.temp_max}°F</td>
+            </tr>
+          </table>
+        </div>
+        <div class="conditions my-4">
+          <h2 class="font-bold text-lg mb-3">Conditions</h2>
+          <table>
+            <tr id="wind_speed${elemIdx}" class="speed">
+              <th class="p-1">Wind Speed:</td>
+              <td class="p-1">${wind.speed}mph</td>
+            </tr>
+            <tr id="wind_direction_${elemIdx}" class="direction">
+              <th class="p-1">Wind Direction:</td>
+              <td class="p-1" data-qa-degree=${wind.deg}>${main.feels_like}</td>
+            </tr>
+            <tr id="humidity_${elemIdx}" class="humidity">
+              <th class="p-1">Humidity:</td>
+              <td class="p-1">${main.humidity}°F</td>
+            </tr>
+          </table>
+        </div>
+      </div>`;
+  }
+
   const autocompleteInput = new autocomplete.GeocoderAutocomplete(
                           document.getElementById("autocomplete"), 
                           "#{ENV['GEOAPIFY_ADDRESS_AUTOCOMPLETE_API_KEY']}", 
                           { /* Geocoder options */ });
 
-    autocompleteInput.on('select', ({city, country, state, place_id, lat, lon}) => {
-      
+  autocompleteInput.on('select', ({properties: {city, country, state, place_id, lat, lon}}) => {
+    var data = {location: {city, country, state, place_id, lat, lon}}
+    $.ajax({
+      type: "POST",
+      url: "#{forecasts_path}",
+      data,
+      dataType: "text",
+      success: function(resultData){
+        // Render the server data into a reusable component
+        weatherDay = WeatherDay({elemId: "current-weather", elemIdx: 0, ...data, ...JSON.parse(resultData)})
+        // Replace the current weather element with the new HTML
+        $("#current-weather").replaceWith(weatherDay);
+        // Show the element if its hidden
+        $("#current-weather").removeClass("hidden");
+        // Clear the search text from the Autocomplete component
+        autocompleteInput.setValue("");
+      }
     });
+  });
