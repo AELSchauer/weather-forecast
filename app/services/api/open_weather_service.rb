@@ -75,8 +75,8 @@ class Api::OpenWeatherService
     def format(data, timezone_offset_in_sec)
       tz_offset = ActiveSupport::TimeZone[timezone_offset_in_sec].formatted_offset
       date_time = Time.at(data["dt"]).utc.to_datetime.new_offset(tz_offset)
-      data["date"] = date_time.strftime("%A, %B %d, %Y")
-      data["time"] = date_time.strftime("%-l:%M %p").strip
+      data["date"] = date_time.strftime("%A, %B %-d, %Y")
+      data["time"] = date_time.strftime("%-l:%M %p")
       data["wind"]["direction"] = direction(data["wind"]["deg"])
       data
     end
