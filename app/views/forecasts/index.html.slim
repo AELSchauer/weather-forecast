@@ -59,8 +59,6 @@ javascript:
       time
     }
   ) => {
-
-
     var heading
     if(heading_type == "location") {
       var cityStateCountry
@@ -126,10 +124,13 @@ javascript:
       </div>`;
   }
 
+  // JS component for Address Autocomplete API
+  // Component -- https://www.npmjs.com/package/@geoapify/geocoder-autocomplete
+  // API -- https://apidocs.geoapify.com/docs/geocoding/address-autocomplete/
   const autocompleteInput = new autocomplete.GeocoderAutocomplete(
                           document.getElementById("autocomplete"), 
                           "#{ENV['GEOAPIFY_ADDRESS_AUTOCOMPLETE_API_KEY']}", 
-                          {type: "postcode", placeholder: "Enter a zipcode here"});
+                          {type: "amenity"});
 
   // Return the geocoding data from the autocomplete search
   // Make a POST AJAX request with the relevant extracted data
@@ -143,7 +144,6 @@ javascript:
       data,
       dataType: "text",
       success: function(resultData) {
-        console.log(JSON.parse(resultData));
         var {current, forecasts} = JSON.parse(resultData)
         var coordinates = current.coord
         // Render the server data into a reusable component

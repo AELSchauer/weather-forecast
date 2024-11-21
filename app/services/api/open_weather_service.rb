@@ -7,11 +7,12 @@ class Api::OpenWeatherService
   class << self
     # This will make a GET request to the Open Weather API
     #   to recieve the forecast for a given location
+    # https://openweathermap.org/forecast5
     # Format each weather data object in the list
     # The response will return in English and imperial units.
     # @param {lat} : location latitude
     # @param {lon} : location longitude
-    # @param {ppostcode} : location postcode / zipcode
+    # @param {postcode} : location postcode / zipcode
     def daily(lat:, lon:, postcode:)
       Rails.cache.fetch("#{postcode}_daily", expires_in: 30.minutes) do
         response = get("/data/2.5/forecast", {
@@ -32,11 +33,12 @@ class Api::OpenWeatherService
 
     # This will make a GET request to the Open Weather API
     #   to recieve the current weather for a given location
+    # https://openweathermap.org/current
     # Format the weather data object
     # The response will return in English and imperial units.
     # @param {lat} : location latitude
     # @param {lon} : location longitude
-    # @param {ppostcode} : location postcode / zipcode
+    # @param {postcode} : location postcode / zipcode
     def weather(lat:, lon:, postcode:)
       Rails.cache.fetch("#{postcode}_weather", expires_in: 30.minutes) do
         response = get("/data/2.5/weather", {

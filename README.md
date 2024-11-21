@@ -7,6 +7,7 @@
 Create an `.env` file at the root of the project and add the following environment variables to the file:
 
 * `OPEN_WEATHER_API_KEY` -- API key for https://openweathermap.org/api
+* `GEOAPIFY_ADDRESS_AUTOCOMPLETE_API_KEY` -- API key for https://apidocs.geoapify.com/
 
 ### Database
 
@@ -37,8 +38,10 @@ When starting the local server, make sure to run:
 
 ## Applicant Follow-Up Work Ideas
 
-* Determine whether it's necessary (and if so how) to create better security around API tokens
-* Explore using Hotwire or React to render more complex and readable UI code
+* Determine whether it's necessary (and if so how) to create better security for the API tokens
+* Replace complex JS with PORO Models & Hotwire to render more complex and readable UI code
+* Replace Ruby caching with Redis caching
+* Add support for metric units with a FE toggle
 
 ## Assignment Parameters
 
