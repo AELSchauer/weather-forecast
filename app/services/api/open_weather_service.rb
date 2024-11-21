@@ -11,20 +11,23 @@ class Api::OpenWeatherService
     # The response will return in English and imperial units.
     # @param {lat} : location latitude
     # @param {lon} : location longitude
-    def daily(lat:, lon:)
-      response = get("/data/2.5/forecast", {
-        query: {
-          lat:,
-          lon:,
-          lang: "en",
-          units: "imperial",
-          appid: API_KEY
-        }
-      })
-      response["list"].map! do |data|
-        format(data, response["city"]["timezone"])
+    # @param {ppostcode} : location postcode / zipcode
+    def daily(lat:, lon:, postcode:)
+      Rails.cache.fetch("#{postcode}_daily", expires_in: 30.minutes) do
+        response = get("/data/2.5/forecast", {
+          query: {
+            lat:,
+            lon:,
+            lang: "en",
+            units: "imperial",
+            appid: API_KEY
+          }
+        })
+        response["list"].map! do |data|
+          format(data, response["city"]["timezone"])
+        end
+        response
       end
-      response
     end
 
     # This will make a GET request to the Open Weather API
@@ -32,21 +35,25 @@ class Api::OpenWeatherService
     # Format the weather data object
     # The response will return in English and imperial units.
     # @param {lat} : location latitude
-    # @param {long} : location longitude
-    def weather(lat:, lon:)
-      response = get("/data/2.5/weather", {
-        query: {
-          lat:,
-          lon:,
-          lang: "en",
-          units: "imperial",
-          appid: API_KEY
-        }
-      })
-      format(response, response["timezone"])
+    # @param {lon} : location longitude
+    # @param {ppostcode} : location postcode / zipcode
+    def weather(lat:, lon:, postcode:)
+      Rails.cache.fetch("#{postcode}_weather", expires_in: 30.minutes) do
+        response = get("/data/2.5/weather", {
+          query: {
+            lat:,
+            lon:,
+            lang: "en",
+            units: "imperial",
+            appid: API_KEY
+          }
+        })
+        format(response, response["timezone"])
+      end
     end
 
-    # This takes the wind degree and returns the closest cardinal direction
+    # Take the wind degree and return the closest cardinal direction
+    # @param {deg} : 360 degree integer
     def direction(deg)
       directions = [
         [ "N", 0 ],

@@ -38,7 +38,10 @@ javascript:
   // @param {data.time} : human readable time for heading
   const WeatherReport = (
     heading_type,
-    {lat, lon},
+    {
+      lat,
+      lon
+    },
     {
       date,
       elemId,
@@ -69,7 +72,7 @@ javascript:
 
       heading = `<div id="location_${elemIdx}">
         <h2 id="city_state_country_${elemIdx}" class="font-bold text-xl mb-1">${cityStateCountry}</h2>
-        <div id="lat_lon_${elemIdx}" class="text-sm">${coordinates.lat},${coordinates.lon}</div>
+        <div id="lat_lon_${elemIdx}" class="text-sm">${lat},${lon}</div>
       </div>`
     } else {
       heading = `<h2 id="datetime_${elemIdx}" class="font-bold text-xl mb-1">${date} ${time}</h2>`
@@ -126,20 +129,21 @@ javascript:
   const autocompleteInput = new autocomplete.GeocoderAutocomplete(
                           document.getElementById("autocomplete"), 
                           "#{ENV['GEOAPIFY_ADDRESS_AUTOCOMPLETE_API_KEY']}", 
-                          { /* Geocoder options */ });
+                          {type: "postcode", placeholder: "Enter a zipcode here"});
 
   // Return the geocoding data from the autocomplete search
   // Make a POST AJAX request with the relevant extracted data
   // On a success, render the HTML for the returned weather objects
   // On a failure, render a generic error message
-  autocompleteInput.on('select', ({properties: {city, country, lat, lon, place_id, state}}) => {
-    var data = {location: {city, country, lat, lon, place_id, state}}
+  autocompleteInput.on('select', ({properties: {city, country, lat, lon, postcode, state}}) => {
+    var data = {location: {city, country, lat, lon, postcode, state}}
     $.ajax({
       type: "POST",
       url: "#{forecasts_path}",
       data,
       dataType: "text",
       success: function(resultData) {
+        console.log(JSON.parse(resultData));
         var {current, forecasts} = JSON.parse(resultData)
         var coordinates = current.coord
         // Render the server data into a reusable component

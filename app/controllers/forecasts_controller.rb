@@ -6,11 +6,15 @@ class ForecastsController < ApplicationController
   end
 
   def create
-    current = Api::OpenWeatherService.weather(lat: params[:location][:lat], lon: params[:location][:lon])
-    forecasts = Api::OpenWeatherService.daily(lat: params[:location][:lat], lon: params[:location][:lon])
+    current = Api::OpenWeatherService.weather(lat: location[:lat], lon: location[:lon], postcode: location[:postcode])
+    forecasts = Api::OpenWeatherService.daily(lat: location[:lat], lon: location[:lon], postcode: location[:postcode])
 
     render json: { current:, forecasts: }.to_json
   rescue => err
     render json: { error: err }, status: 400
+  end
+
+  def location
+    params.require(:location).permit(:lat, :lon, :postcode)
   end
 end

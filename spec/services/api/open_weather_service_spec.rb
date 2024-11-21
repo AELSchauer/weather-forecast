@@ -1,12 +1,17 @@
 require "rails_helper"
 
 describe Api::OpenWeatherService do
+  before(:each) do
+    Rails.cache.clear
+  end
+
   describe "API requests" do
     describe ".daily" do
       it "returns a successful request" do
         response_body = JSON.parse(File.read("./spec/fixtures/belgrade_daily.json"))
         lat = response_body["city"]["coord"]["lat"]
         lon = response_body["city"]["coord"]["lon"]
+        postcode = "12345"
 
         stub_request(:get, described_class.base_uri + "/data/2.5/forecast")
           .with(query: {
@@ -18,8 +23,18 @@ describe Api::OpenWeatherService do
           })
           .to_return_json(body: response_body)
 
-        expect { described_class.daily(lat:, lon:) }.not_to raise_error
-        expect(described_class.daily(lat:, lon:)["cod"].to_i).to eq(200)
+        expect { described_class.daily(lat:, lon:, postcode:) }.not_to raise_error
+        expect(described_class.daily(lat:, lon:, postcode:)["cod"].to_i).to eq(200)
+      end
+
+      it "returns a cached request" do
+        lat = 44.804
+        lon = 20.4651
+        postcode = "12345"
+
+        Rails.cache.write("#{postcode}_daily", "Hello, world!")
+
+        expect(described_class.daily(lat:, lon:, postcode:)).to eq("Hello, world!")
       end
     end
 
@@ -28,6 +43,7 @@ describe Api::OpenWeatherService do
         response_body = JSON.parse(File.read("./spec/fixtures/belgrade_weather.json"))
         lat = response_body["coord"]["lat"]
         lon = response_body["coord"]["lon"]
+        postcode = "12345"
 
         stub_request(:get, described_class.base_uri + "/data/2.5/weather")
           .with(query: {
@@ -39,14 +55,25 @@ describe Api::OpenWeatherService do
           })
           .to_return_json(body: response_body)
 
-        expect { described_class.weather(lat:, lon:) }.not_to raise_error
-        expect(described_class.weather(lat:, lon:)["cod"].to_i).to eq(200)
+        expect { described_class.weather(lat:, lon:, postcode:) }.not_to raise_error
+        expect(described_class.weather(lat:, lon:, postcode:)["cod"].to_i).to eq(200)
+      end
+
+      it "returns a cached request" do
+        lat = 44.804
+        lon = 20.4651
+        postcode = "12345"
+
+        Rails.cache.write("#{postcode}_weather", "Hello, world!")
+
+        expect(described_class.weather(lat:, lon:, postcode:)).to eq("Hello, world!")
       end
     end
 
     it "raises an error if the lat or long is invalid" do
       lat = "bad"
       lon = "data"
+      postcode = "12345"
 
       stub_request(:get, described_class.base_uri + "/data/2.5/forecast")
         .with(query: {
@@ -58,12 +85,13 @@ describe Api::OpenWeatherService do
         })
         .to_return_json(body: { "cod" => "400" }.to_json)
 
-      expect { described_class.daily(lat:, lon:) }.to raise_error("API arguments invalid")
+      expect { described_class.daily(lat:, lon:, postcode:) }.to raise_error("API arguments invalid")
     end
 
     it "raises an error if the API key is invalid" do
       lat = 20
       lon = 20
+      postcode = "12345"
 
       stub_const("Api::OpenWeatherService::API_KEY", "BAD_DATA")
       stub_request(:get, described_class.base_uri + "/data/2.5/forecast")
@@ -76,12 +104,13 @@ describe Api::OpenWeatherService do
         })
         .to_return_json(body: { "cod" => "401" }.to_json)
 
-      expect { described_class.daily(lat:, lon:) }.to raise_error("API token invalid")
+      expect { described_class.daily(lat:, lon:, postcode:) }.to raise_error("API token invalid")
     end
 
     it "raises an error if API data is missing" do
       lat = 20
       lon = 20
+      postcode = "12345"
 
       stub_request(:get, described_class.base_uri + "/data/2.5/forecast")
         .with(query: {
@@ -93,12 +122,13 @@ describe Api::OpenWeatherService do
         })
         .to_return_json(body: { "cod" => "404" }.to_json)
 
-      expect { described_class.daily(lat:, lon:) }.to raise_error("API data missing")
+      expect { described_class.daily(lat:, lon:, postcode:) }.to raise_error("API data missing")
     end
 
     it "raises an error if API data is missing" do
       lat = 20
       lon = 20
+      postcode = "12345"
 
       stub_request(:get, described_class.base_uri + "/data/2.5/forecast")
         .with(query: {
@@ -110,12 +140,13 @@ describe Api::OpenWeatherService do
         })
         .to_return_json(body: { "cod" => "424" }.to_json)
 
-      expect { described_class.daily(lat:, lon:) }.to raise_error("API unavailable")
+      expect { described_class.daily(lat:, lon:, postcode:) }.to raise_error("API unavailable")
     end
 
     it "raises an error if API data is missing" do
       lat = 20
       lon = 20
+      postcode = "12345"
 
       stub_request(:get, described_class.base_uri + "/data/2.5/forecast")
         .with(query: {
@@ -127,7 +158,7 @@ describe Api::OpenWeatherService do
         })
         .to_return_json(body: { "cod" => "500" }.to_json)
 
-      expect { described_class.daily(lat:, lon:) }.to raise_error("API unavailable")
+      expect { described_class.daily(lat:, lon:, postcode:) }.to raise_error("API unavailable")
     end
   end
 
